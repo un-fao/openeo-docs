@@ -1,0 +1,43 @@
+---
+title: "FAO OpenEO Documentation"
+---
+
+The FAO OpenEO backend provides access to Earth observation data and analytical processes through the [OpenEO API v1.2.0](https://openeo.org/). Connect to the backend at [`data.fao.org/openeo`](https://data.fao.org/openeo) using the Python client or the [Web Editor](https://data.fao.org/editor/?server=data.fao.org%2Fopeneo).
+
+## Tutorials
+
+Step-by-step Jupyter notebooks — start from the beginning and work through each one in order.
+
+| # | Tutorial | Description | Run |
+|---|----------|-------------|-----|
+| 1 | [Getting Started](tutorials/01_getting_started.ipynb) | Connect, authenticate, explore collections, load your first data cube | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/01_getting_started.ipynb) |
+| 2 | [NDVI Time Series](tutorials/02_ndvi_time_series.ipynb) | Vegetation monitoring — time series, anomalies, drought classification | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/02_ndvi_time_series.ipynb) |
+| 3 | [Zonal Statistics](tutorials/03_zonal_statistics.ipynb) | Aggregate raster data over administrative regions and polygons | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/03_zonal_statistics.ipynb) |
+| 4 | [Climate Risk (CRTB)](tutorials/04_climate_risk_crtb.ipynb) | Hazard, vulnerability, exposure, and adaptive capacity assessment | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/04_climate_risk_crtb.ipynb) |
+| 5 | [Planting Recommendations](tutorials/05_planting_recommendations.ipynb) | Agricultural planning with PLAN-T maize variety and stressor analysis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/05_planting_recommendations.ipynb) |
+| 6 | [Data Cube Operations](tutorials/06_data_cube_operations.ipynb) | Filtering, cube arithmetic, masking, merging, resampling, convolution, temporal aggregation | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/06_data_cube_operations.ipynb) |
+
+## Running Notebooks Locally
+
+```bash
+pip install openeo matplotlib pandas numpy rasterio
+jupyter notebook docs/tutorials/
+```
+
+Authenticate via OIDC (FAO Single Sign-On) when prompted.
+
+## How-To Guides
+
+*Coming soon* — Practical guides for common tasks: customizing process parameters, working with the Web Editor, exporting results.
+
+## Reference
+
+*Coming soon* — API endpoint reference, process parameter specifications, collection catalog.
+
+## Explanation
+
+*Coming soon* — Architecture overview, process execution flow, data cube concepts.
+
+## Feedback & Support
+
+For questions, issues, or suggestions about these tutorials, contact [Abdallah Hadid](mailto:abdallah.hadid@fao.org).

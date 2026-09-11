@@ -1,0 +1,59 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - "tutorials/*.ipynb"
+
+execute:
+  enabled: false
+
+website:
+  title: "FAO OpenEO Documentation"
+  favicon: "https://www.fao.org/favicon.ico"
+  navbar:
+    background: "#003DA5"
+    foreground: "#FFFFFF"
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Tutorials"
+        href: tutorials/01_getting_started.ipynb
+      - text: "Web Editor"
+        href: "https://data.fao.org/editor/?server=data.fao.org%2Fopeneo"
+
+  sidebar:
+    - title: "Tutorials"
+      style: "docked"
+      contents:
+        - section: "Getting Started"
+          contents:
+            - text: "Getting Started with FAO OpenEO"
+              href: tutorials/01_getting_started.ipynb
+        - section: "Data Analysis"
+          contents:
+            - text: "NDVI Time Series"
+              href: tutorials/02_ndvi_time_series.ipynb
+            - text: "Zonal Statistics"
+              href: tutorials/03_zonal_statistics.ipynb
+        - section: "FAO Processes"
+          contents:
+            - text: "Climate Risk (CRTB)"
+              href: tutorials/04_climate_risk_crtb.ipynb
+            - text: "Planting Recommendations (PLAN-T)"
+              href: tutorials/05_planting_recommendations.ipynb
+        - section: "Advanced Operations"
+          contents:
+            - text: "Data Cube Operations"
+              href: tutorials/06_data_cube_operations.ipynb
+
+  page-footer:
+    center: "FAO OpenEO — [data.fao.org/openeo](https://data.fao.org/openeo)"
+    right: "Feedback & support: [abdallah.hadid@fao.org](mailto:abdallah.hadid@fao.org)"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    code-fold: false
+    code-tools: true
