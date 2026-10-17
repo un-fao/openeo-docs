@@ -11,28 +11,33 @@ Step-by-step Jupyter notebooks — start from the beginning and work through eac
 | # | Tutorial | Description | Run |
 |---|----------|-------------|-----|
 | 1 | [Getting Started](tutorials/01_getting_started.ipynb) | Connect, authenticate, explore collections, load your first data cube | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/01_getting_started.ipynb) |
-| 2 | [NDVI Time Series](tutorials/02_ndvi_time_series.ipynb) | Vegetation monitoring — time series, anomalies, drought classification | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/02_ndvi_time_series.ipynb) |
+| 2 | [Vegetation Time Series](tutorials/02_ndvi_time_series.ipynb) | Vegetation monitoring with VCI — time series, anomalies, drought classification | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/02_ndvi_time_series.ipynb) |
 | 3 | [Zonal Statistics](tutorials/03_zonal_statistics.ipynb) | Aggregate raster data over administrative regions and polygons | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/03_zonal_statistics.ipynb) |
 | 4 | [Climate Risk (CRTB)](tutorials/04_climate_risk_crtb.ipynb) | Hazard, vulnerability, exposure, and adaptive capacity assessment | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/04_climate_risk_crtb.ipynb) |
 | 5 | [Planting Recommendations](tutorials/05_planting_recommendations.ipynb) | Agricultural planning with PLAN-T maize variety and stressor analysis | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/05_planting_recommendations.ipynb) |
 | 6 | [Data Cube Operations](tutorials/06_data_cube_operations.ipynb) | Filtering, cube arithmetic, masking, merging, resampling, convolution, temporal aggregation | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/06_data_cube_operations.ipynb) |
+| 7 | [Drought Monitoring](tutorials/07_drought_monitoring.ipynb) | Climatological normals, percent of normal, severity classes, county ranking, CSV export | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/07_drought_monitoring.ipynb) |
+| 8 | [Reusable Process Graphs](tutorials/08_reusable_process_graphs.ipynb) | Process graph JSON, user-defined processes with parameters, Web Editor round trip | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/un-fao/openeo-docs/blob/main/tutorials/08_reusable_process_graphs.ipynb) |
 
 ## Running Notebooks Locally
 
 ```bash
-pip install openeo matplotlib pandas numpy rasterio
-jupyter notebook docs/tutorials/
+pip install -r requirements.txt jupyter
+jupyter notebook tutorials/
 ```
 
 Authenticate via OIDC (FAO Single Sign-On) when prompted.
 
 ## How-To Guides
 
-*Coming soon* — Practical guides for common tasks: customizing process parameters, working with the Web Editor, exporting results.
+- [Use the Web Editor](how-to/web_editor.qmd): build, run and save process graphs without code
+- [Save Results to a Workspace](how-to/workspaces.qmd): export results to managed storage or your own GCS bucket
 
 ## Reference
 
-*Coming soon* — API endpoint reference, process parameter specifications, collection catalog.
+- [Process Reference](reference/processes.qmd): every process available on the backend
+- [FAO Processes and Extensions](reference/fao_processes.qmd): `zonal_stats`, `climatological_normal`, `crtb_analysis`, loaders, `export_workspace`
+- [Output Formats and Limits](reference/formats_and_limits.qmd): formats, GeoTIFF options, timeouts, size limits and process graph rules
 
 ## Explanation
 
