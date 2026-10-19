@@ -18,6 +18,8 @@ website:
         href: index.qmd
       - text: "Tutorials"
         href: tutorials/01_getting_started.ipynb
+      - text: "Reference"
+        href: reference/processes.qmd
       - text: "Web Editor"
         href: "https://data.fao.org/editor/?server=data.fao.org%2Fopeneo"
 
@@ -31,7 +33,7 @@ website:
               href: tutorials/01_getting_started.ipynb
         - section: "Data Analysis"
           contents:
-            - text: "NDVI Time Series"
+            - text: "Vegetation Time Series"
               href: tutorials/02_ndvi_time_series.ipynb
             - text: "Zonal Statistics"
               href: tutorials/03_zonal_statistics.ipynb
@@ -45,6 +47,24 @@ website:
           contents:
             - text: "Data Cube Operations"
               href: tutorials/06_data_cube_operations.ipynb
+            - text: "Drought Monitoring"
+              href: tutorials/07_drought_monitoring.ipynb
+            - text: "Reusable Process Graphs"
+              href: tutorials/08_reusable_process_graphs.ipynb
+        - section: "How-To Guides"
+          contents:
+            - text: "Use the Web Editor"
+              href: how-to/web_editor.qmd
+            - text: "Save Results to a Workspace"
+              href: how-to/workspaces.qmd
+        - section: "Reference"
+          contents:
+            - text: "Process Reference"
+              href: reference/processes.qmd
+            - text: "FAO Processes and Extensions"
+              href: reference/fao_processes.qmd
+            - text: "Output Formats and Limits"
+              href: reference/formats_and_limits.qmd
 
   page-footer:
     center: "FAO OpenEO — [data.fao.org/openeo](https://data.fao.org/openeo)"

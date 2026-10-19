@@ -1,0 +1,83 @@
+---
+title: "Output Formats and Limits"
+---
+
+## Output formats
+
+Every process graph must end with `save_result` (or `export_workspace` after `save_result`). The `format` argument picks the output type. The live list is at [`/file_formats`](https://data.fao.org/openeo/file_formats).
+
+| Format | Use for | Result |
+|---|---|---|
+| `GTiff` | Raster cubes (with `x`/`y`) | Tiled, compressed GeoTIFF. Non-spatial dimensions (such as `time` or `bands`) become bands, named after their labels. |
+| `JSON` | Tables, zonal statistics, small cubes | A list of records: one row per cell, with dimension columns, `variable`, `value` and any feature properties. |
+| `CSV` | Same as JSON, for spreadsheets | The same rows as `JSON`, as a CSV file. |
+| `JSON-stat` | Statistical exchange | A [JSON-stat 2.0](https://json-stat.org/) dataset, wrapped as `{"json_stat": ...}`. |
+
+### GeoTIFF options
+
+Pass these options to `save_result(format="GTiff", options={...})`:
+
+| Option | Values | Default | Effect |
+|---|---|---|---|
+| `compress` | `LZW`, `DEFLATE`, `ZSTD`, `NONE` | `LZW` | Compression algorithm. |
+| `flatten_timestamps` | `true` / `false` | `false` | `true`: all time steps go into one file as bands. `false`: one file per time step. |
+
+With several time steps and `flatten_timestamps=false`, the backend writes one file per time step. That only works in a **batch job**. A synchronous request with more than one time step fails with:
+
+```
+Multi-timestamp datacube cannot be saved as separate files in sync mode.
+Set flatten_timestamps: true in save_result options, or use a batch job.
+```
+
+Either reduce `time` first, set `flatten_timestamps=True`, or run a batch job.
+
+```python
+cube.download("series.tif", format="GTiff", options={"flatten_timestamps": True})
+```
+
+### Table output from raster cubes
+
+`JSON` and `CSV` also work on raster cubes, with one row per pixel and time step. Keep the area small, or reduce the cube with `zonal_stats` or `aggregate_spatial` first.
+
+## Synchronous vs batch execution
+
+| | Synchronous (`download`, `execute`) | Batch job (`create_job`, `start_and_wait`) |
+|---|---|---|
+| Time limit | 15 minutes | No request timeout |
+| Multi-file GeoTIFF | No (use `flatten_timestamps`) | Yes |
+| Results | Returned in the HTTP response | Stored, downloadable from job results |
+| Retries | No | Up to 3 attempts on server errors |
+
+Use synchronous requests for exploration and small areas. Use batch jobs for long time series, large areas, or anything that might take more than a few minutes.
+
+## Limits
+
+| Limit | Value | Error you'll see |
+|---|---|---|
+| Synchronous request time | 15 minutes | `Request exceeded timeout (900 seconds). Please try again later or use batch jobs.` |
+| Size of any computed array | 1 GiB | `Result size (... MiB) exceeds the 1024 MiB limit.` |
+| Worker memory | Varies | `A worker was terminated during computation (likely out of memory). Try reducing the extent or resolution, or use a batch job.` |
+| Workspace storage | 100 GiB per user | Shown by `connection.describe_account()["storage"]` |
+| Result download links | Signed URLs valid for 1 hour | Fetch the job results again to get fresh links. |
+
+The 1 GiB limit applies to batch jobs too. To stay under it, reduce the extent, the period or the resolution (`resample_spatial`), or reduce dimensions early (for example `reduce_dimension` over `time` before downloading).
+
+## Process graph rules
+
+- **The final node must be `save_result` or `export_workspace`.** Otherwise: `the result node uses process '...', but it must be 'save_result' or 'export_workspace'.` The Python client adds `save_result` for you when you call `download()` or `create_job()`.
+- **`export_workspace` must take its `data` from a `save_result` node**, and a graph can contain only one `export_workspace`.
+- **`reduce_dimension` over `bands` isn't supported yet.** The FAO collections provide ready-made indices (VCI, VHI, ASI, WaPOR layers), so you rarely need band math.
+- **`filter_temporal` and `temporal_extent` exclude the end date.** `["2022-10-01", "2023-01-01"]` covers October to December 2022.
+- **`filter_labels` fails if no label matches its condition.**
+- **User-defined process parameters have no defaults.** Pass a value for every parameter when calling a UDP.
+- **Process graph and UDP IDs** may contain only letters, digits and underscores.
+
+## Collections
+
+The catalogue has about 2,000 collections. Use the full collection ID, such as `fao-gismgr:ASIS:raster:mapsets:VCI-D`. The short IDs from earlier versions of the backend (`VCI-D`) are no longer valid. They currently fail with a generic `Internal server error`, so check the ID first if you see that error.
+
+```python
+hits = [c["id"] for c in connection.list_collections() if "chirps" in c["id"].lower()]
+```
+
+Some collections have extra categorical dimensions (for example `SEASON` and `LCT` in the ASI collections). These dimensions appear in `describe_collection(...)["cube:dimensions"]` and in the cube's dimensions.

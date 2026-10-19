@@ -1,0 +1,91 @@
+---
+title: "Save Results to a Workspace"
+---
+
+A **workspace** is a named storage location that results can be written to with the `export_workspace` process. You can use storage managed by the FAO backend, or register a Google Cloud Storage (GCS) bucket you own so results go straight into it.
+
+You can manage workspaces in the Web Editor (see [below](#in-the-web-editor)) or through the API. The Python client doesn't have helper methods for workspaces yet, so the Python examples call the API endpoints through the authenticated connection.
+
+```python
+import openeo
+
+connection = openeo.connect("https://data.fao.org/openeo")
+connection.authenticate_oidc(provider_id="keycloak")
+```
+
+## Create a managed workspace
+
+The backend stores the files, and they count toward your 100 GiB quota. Titles may contain letters, digits and `_ - . ~`.
+
+```python
+ws = connection.post("/workspaces", json={"intent": "create", "title": "my-results"},
+                     expected_status=201).json()
+print(ws["title"], ws["status"])   # my-results active
+```
+
+## Or register your own GCS bucket
+
+1. Ask the backend which service account acts for you:
+
+    ```python
+    provider = connection.get("/workspace_providers").json()[0]
+    print(provider["grant_instructions"])
+    ```
+
+    The output contains a ready-to-run `gcloud` command that gives your personal FAO OpenEO service account the `roles/storage.objectAdmin` role on your bucket.
+
+2. Run that command (or grant the role in the Google Cloud console).
+3. Register the bucket. `prefix` is an optional folder inside the bucket:
+
+    ```python
+    ws = connection.post("/workspaces", json={
+        "intent": "register", "title": "team-bucket",
+        "storage_type": "gcs", "bucket": "my-gcs-bucket", "prefix": "openeo/",
+    }, expected_status=201).json()
+    print(ws["status"])
+    ```
+
+    The status is `active` once the backend can write to the bucket, and `pending` until then. Exports to a `pending` workspace are rejected. After you grant access, `GET /workspaces/<title>` checks the bucket again.
+
+## Export a result
+
+Add `export_workspace` after `save_result`. It must be the last node.
+
+```python
+cube = connection.load_collection(
+    "fao-gismgr:CHIRPS-V3:raster:mapsets:EWX2-DATA-GM",
+    spatial_extent={"west": 36.5, "east": 37.5, "south": -1.5, "north": -0.5},
+    temporal_extent=["2022-10-01", "2023-01-01"],
+).reduce_dimension(dimension="time", reducer="sum")
+
+result = cube.save_result(format="GTiff")
+exported = result.process("export_workspace", data=result,
+                          workspace="my-results", file_path="ond2022_total.tif")
+```
+
+- **Batch job** (recommended): `connection.create_job(exported).start_and_wait()`. The file is written to the workspace and is also listed in the job results under the name `ond2022_total.tif`. Files from a job go into a sub-folder named after the job ID.
+- **Synchronous**: `exported.download("ond2022_total.tif")` writes the file to the workspace and also returns it.
+
+An existing file with the same `file_path` is overwritten.
+
+## List and delete workspaces
+
+```python
+for w in connection.get("/workspaces").json()["workspaces"]:
+    print(w["title"], w["status"], w["bucket"], w["prefix"])
+
+connection.delete("/workspaces/my-results", expected_status=204)
+```
+
+::: {.callout-warning}
+Deleting a **managed** workspace also deletes all of its files. Deleting a **registered** workspace only removes the registration; files in your bucket stay.
+:::
+
+## In the Web Editor
+
+Open the **Workspaces** menu in the header. It lists your workspaces, and it's empty until you add one. Choose the add option to open the **Add Workspace** dialog, which offers two choices:
+
+- **Create a new workspace**: creates a folder in the backend's managed storage. No credentials are needed. This is the same as `"intent": "create"` in the API.
+- **Register an external workspace**: connects a cloud storage bucket you already own. This is the same as `"intent": "register"`, and it needs the access grant described above.
+
+To use a workspace, add an `export_workspace` process after `save_result` in the model and enter the workspace title and a file path. Workspaces created in the Editor and in Python are the same, so each shows up in the other.

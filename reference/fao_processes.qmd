@@ -1,0 +1,181 @@
+---
+title: "FAO Processes and Extensions"
+---
+
+This page has two parts. **FAO-specific processes** aren't part of the standard openEO process catalogue. **Standard processes with FAO notes** are standard openEO processes, listed here because the FAO backend adds parameters or behaviour you should know about. For the full parameter list of every process, see the [Process Reference](processes.qmd).
+
+Each example shows Python first, then the equivalent process graph JSON. You can paste that JSON into the [Web Editor](https://data.fao.org/editor/?server=data.fao.org%2Fopeneo) code view.
+
+## FAO-specific processes
+
+### `zonal_stats`
+
+Summarises a raster cube over one or more polygons. Unlike `aggregate_spatial`, it computes several statistics in one call and copies each feature's `properties` into the result rows, so you can tell zones apart by name.
+
+| Parameter | Description |
+|---|---|
+| `data_cube` | Raster cube with `x`/`y` dimensions. A `time` dimension is kept: you get one row per zone, statistic and time step. |
+| `geometries` | GeoJSON Geometry, Feature or FeatureCollection, or the output of `load_geojson_url` / `load_fiona_feature_collection`. |
+| `stats` | Any of `min`, `max`, `mean`, `count`, `sum`, `std`, `var`, `median`, `range`. |
+| `categorical` | `true` returns pixel counts per class value instead of statistics. Use it for land cover and other class maps. |
+| `all_touched` | `true` (default) includes every pixel the polygon touches. `false` includes only pixels whose centre is inside. |
+
+Every result also includes `unmasked_count` and `masked_count` (valid and nodata pixels per zone).
+
+```python
+stats = cube.process("zonal_stats", data_cube=cube, geometries=counties, stats=["mean", "max"])
+rows = stats.save_result(format="JSON").download()
+```
+
+```json
+"zonal": {
+  "process_id": "zonal_stats",
+  "arguments": {
+    "data_cube": {"from_node": "load"},
+    "geometries": {"type": "FeatureCollection", "features": [ ... ]},
+    "stats": ["mean", "max"]
+  }
+}
+```
+
+Example output row (JSON):
+
+```json
+{"geometry": "geometry_0", "variable": "mean", "value": 35.95, "county": "Turkana"}
+```
+
+Tutorials: [Zonal Statistics](../tutorials/03_zonal_statistics.ipynb), [Drought Monitoring](../tutorials/07_drought_monitoring.ipynb).
+
+### `crtb_analysis`
+
+Runs a Climate Risk Toolbox (CRTB) analysis for an area and returns risk classes per indicator.
+
+| Parameter | Description |
+|---|---|
+| `analysis_id` | `Hazards_Baseline`, `Hazards_Near_Term_RCP_2.6`, `Hazards_Near_Term_RCP_8.5`, `Hazards_Mid_Term_RCP_2.6`, `Hazards_Mid_Term_RCP_8.5`, `Vulnerability_Baseline`, `adaptiveCapacity_Baseline`, `Exposure_Baseline`. |
+| `geometry_type` | `geojson` (default) for a geometry you supply, or `feature_collection` for an FAO catalogue boundary. |
+| `geojson` | The area of interest. |
+
+```python
+risk = connection.datacube_from_process("crtb_analysis", analysis_id="Hazards_Baseline", geojson=area)
+result = risk.save_result(format="JSON").download()
+```
+
+Tutorial: [Climate Risk (CRTB)](../tutorials/04_climate_risk_crtb.ipynb).
+
+### `load_geojson_url`
+
+Downloads a GeoJSON file from an HTTP(S) URL on the server and returns its geometries. Pass the result to `zonal_stats`, `aggregate_spatial`, `mask_polygon` or `filter_spatial`. The file must be plain GeoJSON (Geometry, Feature or FeatureCollection) without a top-level `crs` member, and the server must be able to download it within 30 seconds.
+
+```python
+counties = connection.datacube_from_process(
+    "load_geojson_url",
+    url="https://raw.githubusercontent.com/un-fao/openeo-docs/main/tutorials/data/kenya_counties.geojson",
+)
+stats = cube.process("zonal_stats", data_cube=cube, geometries=counties, stats=["mean"])
+```
+
+```json
+"boundaries": {
+  "process_id": "load_geojson_url",
+  "arguments": {"url": "https://example.org/boundaries.geojson"}
+}
+```
+
+### `load_fiona_feature_collection`
+
+Loads boundaries from the FAO geospatial catalogue (the same layers used on FAO maps). You identify the layer with `properties.geometry_id`, and the features select which records to load by matching their `properties`.
+
+```python
+sri_lanka = connection.datacube_from_process(
+    "load_fiona_feature_collection",
+    feature_collection={
+        "type": "FeatureCollection",
+        "properties": {
+            "resource_id": "Catalog",
+            "geometry_id": "8ff5e5da-b79e-4992-893d-951eefd5fa0c_3e7eb81d-9493-4e99-acec-49395fc961b3_e34b87c8-bf33-4796-b23a-f087c785f181",
+        },
+        "features": [{"type": "Feature", "geometry": None, "properties": {"iso3": "LKA"}}],
+    },
+)
+```
+
+The `geometry_id` above is the FAO UN country boundaries layer. All catalogue attributes (`iso3`, `m49`, `faostat`, `disp_en`, ...) are carried through to `zonal_stats` results.
+
+### `pixel_count`
+
+Counts how often each unique value occurs and returns a `{value: count}` histogram. It's intended as the reducer of `aggregate_spatial` on class maps such as land cover. For most cases, `zonal_stats` with `categorical=true` gives the same counts in a more convenient table.
+
+### PLAN-T processes
+
+`maze_varieties`, `planting_recommendation` and `cs_assessment` support the PLAN-T planting advisory tool. They take a latitude and longitude (and a planting date) rather than a data cube. See [Planting Recommendations](../tutorials/05_planting_recommendations.ipynb).
+
+## Standard processes with FAO notes
+
+### `aggregate_spatial` (extension)
+
+Follows the openEO specification, with one extra parameter: `all_touched` (default `true`), which works the same way as in `zonal_stats`. Use `aggregate_spatial` when you want a single reducer and openEO-standard output, and `zonal_stats` when you want several statistics with feature properties attached.
+
+### `climatological_normal`
+
+Averages a time series by calendar period across years. This is the standard openEO `climatological_normal` process; the notes below describe how the FAO backend labels the result.
+
+| Parameter | Description |
+|---|---|
+| `data` | Cube with one `time` dimension. Load at least the full climatology period. |
+| `period` | `month` (labels `"01"`–`"12"`), `day` (`"001"`–`"366"`), `season` (`djf`, `mam`, `jja`, `son`), `tropical-season` (`ndjfma`, `mjjaso`) or `climatology-period` (one layer). |
+| `climatology_period` | Closed year range `[start, end]`, for example `[1991, 2020]`. Default `[1981, 2010]`. |
+
+The output `time` labels are the period names, not dates. Select periods with `filter_labels`:
+
+```python
+import openeo.processes as P
+
+normal = history.process("climatological_normal", data=history, period="month",
+                         climatology_period=[1991, 2020])
+ond = normal.filter_labels(lambda m: P.or_(P.or_(m == "10", m == "11"), m == "12"), dimension="time")
+```
+
+Tutorial: [Drought Monitoring](../tutorials/07_drought_monitoring.ipynb).
+
+### `load_url`
+
+Loads a GeoTIFF or Cloud-Optimized GeoTIFF from an HTTP(S) URL as a data cube. Each band becomes a label on the `bands` dimension, nodata values become missing, and any scale or offset stored in the file is applied.
+
+| Parameter | Description |
+|---|---|
+| `url` | Public HTTP(S) URL. |
+| `format` | `GTiff`. |
+| `options` | Optional extra arguments passed to the raster reader. |
+
+```python
+my_raster = connection.datacube_from_process("load_url", url="https://example.org/my_layer.tif", format="GTiff")
+```
+
+### `export_workspace`
+
+A standard openEO process. It writes the output of `save_result` to one of your [workspaces](../how-to/workspaces.qmd) instead of returning it only as a download.
+
+| Parameter | Description |
+|---|---|
+| `data` | Must be the output of a `save_result` node. |
+| `workspace` | Workspace title (letters, digits, `_ - . ~`). |
+| `file_path` | File name inside the workspace. Existing files with the same name are overwritten. |
+
+`export_workspace` must be the graph's final (result) node, and a graph can contain only one of them.
+
+```python
+result = cube.save_result(format="GTiff")
+exported = result.process("export_workspace", data=result, workspace="my-results", file_path="ond2022_total.tif")
+exported.download()                      # synchronous: also returns the file
+connection.create_job(exported).start_and_wait()   # batch: file written to the workspace
+```
+
+```json
+"save": {"process_id": "save_result", "arguments": {"data": {"from_node": "total"}, "format": "GTiff"}},
+"export": {
+  "process_id": "export_workspace",
+  "arguments": {"data": {"from_node": "save"}, "workspace": "my-results", "file_path": "ond2022_total.tif"},
+  "result": true
+}
+```

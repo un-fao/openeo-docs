@@ -1,0 +1,82 @@
+---
+title: "Use the Web Editor"
+---
+
+The [FAO OpenEO Web Editor](https://data.fao.org/editor/?server=data.fao.org%2Fopeneo) is the standard [openEO Web Editor](https://github.com/Open-EO/openeo-web-editor) (version 0.14), connected to the FAO backend. You can build process graphs visually, run them, and manage jobs and saved processes without writing code.
+
+## Sign in
+
+Open the link above and log in with your FAO account, the same one Python uses with `authenticate_oidc(provider_id="keycloak")`. After login, the header shows your name and storage usage. Your jobs, saved processes and files are shared between the Editor and Python.
+
+## The interface
+
+| Area | What it contains |
+|---|---|
+| Header | **Help**, **Wizard**, **Server** and **Workspaces** menus, plus your account and storage quota. |
+| Left panel | A search box and three lists: **Collections**, **Processes** and **Export File Formats**. |
+| Model area (top right) | The **Visual Model** and **Code** (JSON) tabs, with toolbar buttons for new, import, paste, undo/redo and layout. |
+| Bottom panel | **Data Processing** (your batch jobs), **Web Services**, **User-Defined Processes** and **Files**. |
+
+## Find data and processes
+
+- **Collections**: search by keyword (for example `CHIRPS`, `VCI`, `WaPOR`) and drag a collection into the model to create a `load_collection` node. Use the full ID (`fao-gismgr:...`).
+- **Processes**: every process from the [Process Reference](../reference/processes.qmd), including FAO processes such as `zonal_stats` and `crtb_analysis`. Your own saved processes are listed here too.
+
+## Build a graph
+
+1. Drag `load_collection` into the **Visual Model** and set the collection, the spatial extent and the temporal extent. The end date is excluded.
+2. Add processes and connect each node's output to the next node's `data` input. Callback parameters, such as the reducer of `reduce_dimension` or the process of `apply`, open their own small model where you add the reducer (for example `mean` or `sum`).
+3. End with `save_result` and choose a format: `GTiff`, `JSON`, `CSV` or `JSON-stat`. See [Output Formats and Limits](../reference/formats_and_limits.qmd).
+
+## Move graphs between Python and the Editor
+
+**Python to Editor.** Print the graph with `print(cube.to_json())` (or `cube.save_result(...).to_json()`). Then do one of these in the Editor:
+
+- paste the JSON into the **Visual Model** with the paste button, or with Ctrl+V (Cmd+V on macOS) while the model has focus,
+- drag a `.json` file onto the model,
+- use the import button to load a JSON file from your computer or a URL.
+
+**Editor to Python.** Open the **Code** tab, copy the JSON and load it with `connection.datacube_from_json(json_string)`.
+
+## Run it
+
+Use the buttons above the job list in the **Data Processing** tab:
+
+- **Run directly** sends a synchronous request and shows the result in the viewer. It's best for small areas and must finish within 15 minutes.
+- **Run with options** runs synchronously like **Run directly**, after asking for a few standard openEO settings: a **Log level** (`debug`, `info`, `warning` or `error`, default `info`), a **Billing plan** and an optional **Budget limit** in EUR. The backend accepts these fields, but it has only one plan (`free`), and it doesn't charge or enforce a budget. Leave the defaults.
+- **Create Batch Job** is for longer runs. The job appears in the list with its status, and you can start it and download the results. Jobs created in Python appear in this list too.
+
+## Workspaces
+
+The **Workspaces** menu in the header lists the storage locations that `export_workspace` can write to. If you have none, it shows an option to add one: either **Create a new workspace** in the backend's managed storage (no credentials needed) or **Register an external workspace** for a cloud bucket you own. See [Save Results to a Workspace](workspaces.qmd).
+
+## Saved processes (UDPs)
+
+Processes you save, from Python or from the Editor, are listed in the **User-Defined Processes** tab and in the **Processes** list. In the tab, each process has buttons to view its details (summary, description and every parameter with its type), edit it, or delete it.
+
+To make a process reusable:
+
+- Replace fixed values (extent, dates, polygons) with **parameters**, and give each a clear name and description.
+- Use only letters, digits and underscores in the process ID.
+- Callers must pass every parameter, because defaults aren't applied on this backend.
+
+Call it from Python with `connection.datacube_from_process("<id>", ...)`, or drag it from the **Processes** list into another model. When you open the process node in the Editor, its parameters get input widgets matched to the schemas you declared:
+
+| Parameter declared with | Editor input |
+|---|---|
+| `Parameter.spatial_extent` | A **Bounding Box** map: click and draw the box. A dropdown lets you choose other extent types. |
+| `Parameter.temporal_interval` | **Start time** and **end time** date pickers. |
+| `Parameter.geojson` | A map with point, line and polygon drawing tools. |
+
+Required parameters are marked with a red asterisk and show your description. Click **Submit** to apply the values. See [Reusable Process Graphs](../tutorials/08_reusable_process_graphs.ipynb) for a full example.
+
+## Common errors
+
+| Message | Fix |
+|---|---|
+| `the result node uses process '...', but it must be 'save_result' or 'export_workspace'` | Add `save_result` as the last node. |
+| `Multi-timestamp datacube cannot be saved as separate files in sync mode` | Reduce `time`, set `flatten_timestamps` to `true` in the `save_result` options, or create a batch job. |
+| `Request exceeded timeout (900 seconds)` | Use a smaller area or period, or a batch job. |
+| `Result size (...) exceeds the 1024 MiB limit` | Reduce the area, period or resolution before saving. |
+| `Reduce dimension on bands is not supported yet` | Use a ready-made index collection instead of band maths. |
+| `Internal server error` right after `load_collection` | Check the collection ID; short IDs like `VCI-D` are no longer valid. |

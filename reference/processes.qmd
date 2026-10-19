@@ -1,0 +1,246 @@
+---
+title: "Process Reference"
+---
+
+This page lists the 109 processes available on [`https://data.fao.org/openeo`](https://data.fao.org/openeo/processes). It is generated from the live `/processes` endpoint with `scripts/generate_process_reference.py`.
+
+Standard openEO processes behave as described in the [openEO process documentation](https://processes.openeo.org/); follow the links for full details. FAO-specific processes are described below. Standard processes with FAO notes link to [FAO Processes](fao_processes.qmd).
+
+In Python, call any process with `cube.process("<id>", ...)` or `connection.datacube_from_process("<id>", ...)`. In the Web Editor, search for the process ID in the process list.
+
+## FAO-specific processes
+
+These processes aren't part of the standard openEO catalogue. See [FAO Processes](fao_processes.qmd) for usage notes and examples.
+
+### `zonal_stats`
+
+FAO zonal statistics with feature properties carried through.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `data_cube` | Data Cube | yes |  | xarray DataArray or Dataset to analyze |
+| `geometries` | geojson, object | yes |  | Geometry, Feature, or FeatureCollection to analyze |
+| `stats` | array | no |  | Stats to calculate. Supported: ['min', 'max', 'mean', 'count', 'sum', 'std', 'var', 'median', 'range'] |
+| `categorical` | boolean | no | `false` | Categorical analysis mode |
+| `all_touched` | boolean | no | `true` | Include boundary pixels |
+
+### `crtb_analysis`
+
+Climate Risk Toolbox hazard, vulnerability, exposure and adaptive capacity.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `analysis_id` | `Hazards_Baseline` / `Hazards_Near_Term_RCP_2.6` / `Hazards_Near_Term_RCP_8.5` / `Hazards_Mid_Term_RCP_2.6` / `Hazards_Mid_Term_RCP_8.5` / `Vulnerability_Baseline` / `adaptiveCapacity_Baseline` / `Exposure_Baseline` | no | `"Hazards_Baseline"` | The ID of the analysis to perform |
+| `geometry_type` | `geojson` / `feature_collection` | no | `"geojson"` | Type of geometry input: 'geojson' or 'feature_collection' |
+| `geojson` | geojson, object | yes |  | The geometry data - either a GeoJSON object or feature collection configuration |
+
+### `load_geojson_url`
+
+Load polygons from a GeoJSON URL.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `url` | string | yes |  | The URL to load the geojson from. |
+
+### `load_fiona_feature_collection`
+
+Load boundaries from the FAO geospatial catalogue.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `feature_collection` | object | yes |  | The feature collection to load. |
+
+### `pixel_count`
+
+Count occurrences of each pixel value.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `data` | Data | yes |  | An array of numbers. |
+| `ignore_nodata` | boolean | no | `true` | Whether to ignore no-data values. |
+
+### `maze_varieties`
+
+PLAN-T: maize varieties suitable for a location.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `latitude` | number | yes |  | The latitude of the point |
+| `longitude` | number | yes |  | The longitude of the point |
+
+### `planting_recommendation`
+
+PLAN-T: whether a planting date is suitable.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `planting_date` | string | yes |  | The date in YYYY-MM-DD format |
+| `latitude` | number | yes |  | The latitude of the point |
+| `longitude` | number | yes |  | The longitude of the point |
+
+### `cs_assessment`
+
+PLAN-T: climate stressors for a planting date.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `date` | string | yes |  | The date in YYYY-MM-DD format |
+| `latitude` | number | yes |  | The latitude of the point |
+| `longitude` | number | yes |  | The longitude of the point |
+| `maze_varieties` | array | yes |  | The maze varieties |
+| `climate_stressors` | array | yes |  | The climate stressors |
+
+### `sign`
+
+Alias of `sgn`.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `x` | number | yes |  | A number. |
+
+## Standard openEO processes
+
+### Loading data
+
+| Process | Summary |
+|---|---|
+| [`load_collection`](https://processes.openeo.org/#load_collection) | Load a collection |
+| [`load_url`](https://processes.openeo.org/#load_url) | Load data from a URL ([FAO notes](fao_processes.qmd#load_url)) |
+
+### Saving and exporting
+
+| Process | Summary |
+|---|---|
+| [`export_workspace`](https://processes.openeo.org/#export_workspace) | Export data to a cloud workspace ([FAO notes](fao_processes.qmd#export_workspace)) |
+| [`save_result`](https://processes.openeo.org/#save_result) | Save processed data |
+
+### Filtering
+
+| Process | Summary |
+|---|---|
+| [`filter_bands`](https://processes.openeo.org/#filter_bands) | Filter the bands by names |
+| [`filter_bbox`](https://processes.openeo.org/#filter_bbox) | Spatial filter using a bounding box |
+| [`filter_labels`](https://processes.openeo.org/#filter_labels) | Filter dimension labels based on a condition |
+| [`filter_spatial`](https://processes.openeo.org/#filter_spatial) | Spatial filter raster data cubes using geometries |
+| [`filter_temporal`](https://processes.openeo.org/#filter_temporal) | Temporal filter based on temporal intervals |
+
+### Data cube operations
+
+| Process | Summary |
+|---|---|
+| [`add_dimension`](https://processes.openeo.org/#add_dimension) | Add a new dimension |
+| [`aggregate_spatial`](https://processes.openeo.org/#aggregate_spatial) | Zonal statistics for geometries ([FAO notes](fao_processes.qmd#aggregate_spatial-extension)) |
+| [`aggregate_temporal`](https://processes.openeo.org/#aggregate_temporal) | Temporal aggregations |
+| [`aggregate_temporal_period`](https://processes.openeo.org/#aggregate_temporal_period) | Temporal aggregation by calendar period |
+| [`apply`](https://processes.openeo.org/#apply) | Apply a process to each value |
+| [`apply_dimension`](https://processes.openeo.org/#apply_dimension) | Apply a process to all values along a dimension |
+| [`apply_kernel`](https://processes.openeo.org/#apply_kernel) | Apply a spatial convolution with a kernel |
+| [`climatological_normal`](https://processes.openeo.org/#climatological_normal) | Compute climatological normals ([FAO notes](fao_processes.qmd#climatological_normal)) |
+| [`dimension_labels`](https://processes.openeo.org/#dimension_labels) | Get dimension labels |
+| [`drop_dimension`](https://processes.openeo.org/#drop_dimension) | Remove a dimension |
+| [`mask`](https://processes.openeo.org/#mask) | Apply a raster mask |
+| [`mask_polygon`](https://processes.openeo.org/#mask_polygon) | Apply a polygon mask |
+| [`merge_cubes`](https://processes.openeo.org/#merge_cubes) | Merge two data cubes |
+| [`reduce_dimension`](https://processes.openeo.org/#reduce_dimension) | Reduce dimensions |
+| [`rename_dimension`](https://processes.openeo.org/#rename_dimension) | Rename a dimension |
+| [`rename_labels`](https://processes.openeo.org/#rename_labels) | Rename dimension labels |
+| [`resample_cube_spatial`](https://processes.openeo.org/#resample_cube_spatial) | Resample the spatial dimensions to match a target data cube |
+| [`resample_cube_temporal`](https://processes.openeo.org/#resample_cube_temporal) | Resample temporal dimensions to match a target data cube |
+| [`resample_spatial`](https://processes.openeo.org/#resample_spatial) | Resample and warp the spatial dimensions |
+
+### Reducers and statistics
+
+| Process | Summary |
+|---|---|
+| [`all`](https://processes.openeo.org/#all) | All true |
+| [`any`](https://processes.openeo.org/#any) | Any true |
+| [`count`](https://processes.openeo.org/#count) | Count |
+| [`extrema`](https://processes.openeo.org/#extrema) | Extrema |
+| [`first`](https://processes.openeo.org/#first) | First element |
+| [`last`](https://processes.openeo.org/#last) | Last element |
+| [`max`](https://processes.openeo.org/#max) | Maximum |
+| [`mean`](https://processes.openeo.org/#mean) | Arithmetic mean |
+| [`median`](https://processes.openeo.org/#median) | Median |
+| [`min`](https://processes.openeo.org/#min) | Minimum |
+| [`product`](https://processes.openeo.org/#product) | Product |
+| [`quantiles`](https://processes.openeo.org/#quantiles) | Quantiles |
+| [`sd`](https://processes.openeo.org/#sd) | Standard deviation |
+| [`sort`](https://processes.openeo.org/#sort) | Sort |
+| [`sum`](https://processes.openeo.org/#sum) | Sum |
+| [`variance`](https://processes.openeo.org/#variance) | Variance |
+
+### Comparison
+
+| Process | Summary |
+|---|---|
+| [`eq`](https://processes.openeo.org/#eq) | Equal |
+| [`gt`](https://processes.openeo.org/#gt) | Greater than |
+| [`gte`](https://processes.openeo.org/#gte) | Greater than or equal |
+| [`lt`](https://processes.openeo.org/#lt) | Less than |
+| [`lte`](https://processes.openeo.org/#lte) | Less than or equal |
+| [`neq`](https://processes.openeo.org/#neq) | Not equal |
+
+### Logic
+
+| Process | Summary |
+|---|---|
+| [`and`](https://processes.openeo.org/#and) | Logical AND |
+| [`is_nan`](https://processes.openeo.org/#is_nan) | Is NaN |
+| [`is_nodata`](https://processes.openeo.org/#is_nodata) | Is no-data |
+| [`is_valid`](https://processes.openeo.org/#is_valid) | Is valid |
+| [`not`](https://processes.openeo.org/#not) | Logical NOT |
+| [`or`](https://processes.openeo.org/#or) | Logical OR |
+| [`xor`](https://processes.openeo.org/#xor) | Logical XOR |
+
+### Math
+
+| Process | Summary |
+|---|---|
+| [`absolute`](https://processes.openeo.org/#absolute) | Absolute value |
+| [`add`](https://processes.openeo.org/#add) | Add |
+| [`arccos`](https://processes.openeo.org/#arccos) | Inverse cosine |
+| [`arcosh`](https://processes.openeo.org/#arcosh) | Inverse hyperbolic cosine |
+| [`arcsin`](https://processes.openeo.org/#arcsin) | Inverse sine |
+| [`arctan`](https://processes.openeo.org/#arctan) | Inverse tangent |
+| [`arctan2`](https://processes.openeo.org/#arctan2) | Inverse tangent of two values |
+| [`arsinh`](https://processes.openeo.org/#arsinh) | Inverse hyperbolic sine |
+| [`artanh`](https://processes.openeo.org/#artanh) | Inverse hyperbolic tangent |
+| [`between`](https://processes.openeo.org/#between) | Between |
+| [`ceil`](https://processes.openeo.org/#ceil) | Ceiling |
+| [`clip`](https://processes.openeo.org/#clip) | Clip |
+| [`constant`](https://processes.openeo.org/#constant) | Constant |
+| [`cos`](https://processes.openeo.org/#cos) | Cosine |
+| [`cosh`](https://processes.openeo.org/#cosh) | Hyperbolic cosine |
+| [`cumsum`](https://processes.openeo.org/#cumsum) | Cumulative sums |
+| [`divide`](https://processes.openeo.org/#divide) | Divide |
+| [`e`](https://processes.openeo.org/#e) | Euler's number |
+| [`exp`](https://processes.openeo.org/#exp) | Exponential |
+| [`floor`](https://processes.openeo.org/#floor) | Floor |
+| [`if`](https://processes.openeo.org/#if) | If |
+| [`int`](https://processes.openeo.org/#int) | Integer part |
+| [`linear_scale_range`](https://processes.openeo.org/#linear_scale_range) | Linear scale range |
+| [`ln`](https://processes.openeo.org/#ln) | Natural logarithm |
+| [`log`](https://processes.openeo.org/#log) | Logarithm |
+| [`mod`](https://processes.openeo.org/#mod) | Modulo |
+| [`multiply`](https://processes.openeo.org/#multiply) | Multiply |
+| [`nan`](https://processes.openeo.org/#nan) | NaN |
+| [`normalized_difference`](https://processes.openeo.org/#normalized_difference) | Normalized difference |
+| [`pi`](https://processes.openeo.org/#pi) | Pi |
+| [`power`](https://processes.openeo.org/#power) | Power |
+| [`round`](https://processes.openeo.org/#round) | Round |
+| [`sgn`](https://processes.openeo.org/#sgn) | Signum |
+| [`sin`](https://processes.openeo.org/#sin) | Sine |
+| [`sinh`](https://processes.openeo.org/#sinh) | Hyperbolic sine |
+| [`sqrt`](https://processes.openeo.org/#sqrt) | Square root |
+| [`subtract`](https://processes.openeo.org/#subtract) | Subtract |
+| [`tan`](https://processes.openeo.org/#tan) | Tangent |
+| [`tanh`](https://processes.openeo.org/#tanh) | Hyperbolic tangent |
+
+### Arrays
+
+| Process | Summary |
+|---|---|
+| [`array_concat`](https://processes.openeo.org/#array_concat) | Concatenate arrays |
+| [`array_create`](https://processes.openeo.org/#array_create) | Create array |
+| [`array_element`](https://processes.openeo.org/#array_element) | Array element |
+| [`array_find`](https://processes.openeo.org/#array_find) | Find in array |
